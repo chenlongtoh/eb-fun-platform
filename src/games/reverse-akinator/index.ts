@@ -1,12 +1,14 @@
+import { createElement, lazy } from 'react'
 import type { GameManifest } from '@/contract/game.ts'
-import thumbnail from './thumbnail.svg'
-import { Game } from './Game.tsx'
+import thumbnail from './assets/thumbnail.svg'
+import { GameTitle, gameTitle } from './Title.tsx'
 
 export const manifest: GameManifest = {
   slug: 'reverse-akinator',
-  title: 'Reverse Akinator',
+  title: gameTitle,
+  titleNode: createElement(GameTitle),
   description:
     'Someone has a character in mind. This time, you are the one asking the questions.',
   thumbnail,
-  component: Game,
+  component: lazy(() => import('./Game.tsx')),
 }

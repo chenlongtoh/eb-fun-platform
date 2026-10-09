@@ -19,26 +19,34 @@ describe('platform shell', () => {
 
     expect(screen.getByRole('link', { name: 'EB Fun Platform' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Pick a game' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Reverse Akinator/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Play StaySEAN/ })).toBeInTheDocument()
+    expect(document.querySelector('.reverse-akinator-accent')).toHaveTextContent('SEAN')
+    expect(document.title).toBe('EB Fun Platform')
     expect(screen.getByRole('link', { name: /Where's My Light\?/ })).toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: 'Back to lobby' }),
     ).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: /Reverse Akinator/ }))
+    await user.click(screen.getByRole('link', { name: /Play StaySEAN/ }))
 
     expect(
-      screen.getByRole('heading', { name: 'Reverse Akinator' }),
+      await screen.findByRole('heading', { name: 'Play StaySEAN' }),
     ).toBeInTheDocument()
     expect(screen.getByText('Coming soon.')).toBeInTheDocument()
+    expect(document.title).toBe('Play StaySEAN · EB Fun Platform')
+    expect(document.querySelector('.reverse-akinator-accent')).toHaveTextContent('SEAN')
 
     await user.click(screen.getByRole('link', { name: 'Back to lobby' }))
     await user.click(screen.getByRole('link', { name: /Where's My Light\?/ }))
 
     expect(
-      screen.getByRole('heading', { name: "Where's My Light?" }),
+      await screen.findByRole('heading', { name: "Where's My Light?" }),
     ).toBeInTheDocument()
     expect(screen.getByText('Coming soon.')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Placeholder scene' })).toHaveAttribute(
+      'src',
+      expect.stringMatching(/scene\.png/),
+    )
   })
 
   it('explains when a game slug is not registered', () => {

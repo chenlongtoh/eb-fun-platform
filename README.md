@@ -36,12 +36,13 @@ src/
   platform/layout/          Shared header and page chrome
   platform/pages/           Lobby, game route, not-found page
   games/<slug>/             One folder per game
-  shared/                   Utilities any game may import
+  games/<slug>/assets/      That game's images and other static files
+  shared/                   Utilities any game may import (RNG, namespaced saves)
 ```
 
 Starter games:
 
-- `src/games/reverse-akinator/` — Reverse Akinator
+- `src/games/reverse-akinator/` — Play StaySEAN (`reverse-akinator`)
 - `src/games/wheres-my-light/` — Where's My Light?
 
 Both are coming-soon stubs. Replace the files inside a folder to build that game. Leave the other folder alone.
@@ -54,13 +55,14 @@ A game exports a `manifest` from `src/games/<slug>/index.ts`:
 interface GameManifest {
   slug: string
   title: string
+  titleNode?: ReactNode
   description: string
   thumbnail: string
-  component: ComponentType
+  component: LazyExoticComponent<ComponentType>
 }
 ```
 
-The shell imports those manifests only in `src/platform/registry.ts`. Games must not import other games. Shared helpers, including a seeded RNG, live in `src/shared/`.
+The shell imports those manifests only in `src/platform/registry.ts`. Each manifest lazy-loads its game component, so a game's assets are not part of the lobby bundle. Images live in that game's `assets/` folder and are imported through Vite. `title` is the plain name used for the document title and accessibility. Set `titleNode` when part of that name needs its own styling. Shared helpers, including a seeded RNG and `createGameStorage(slug)`, live in `src/shared/`.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/adding-a-game.md](docs/adding-a-game.md) for the rules and the exact steps to add a game.
 

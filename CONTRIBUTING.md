@@ -54,19 +54,21 @@ Rules:
 export interface GameManifest {
   slug: string
   title: string
+  titleNode?: ReactNode
   description: string
   thumbnail: string
-  component: ComponentType
+  component: LazyExoticComponent<ComponentType>
 }
 ```
 
-| Field         | Meaning                                                            |
-| ------------- | ------------------------------------------------------------------ |
-| `slug`        | Lowercase kebab-case URL segment. Must equal the folder name.      |
-| `title`       | Card title and the name players see.                               |
-| `description` | One or two sentences on the lobby card.                            |
-| `thumbnail`   | Image URL for the card. Import an SVG or PNG from the game folder. |
-| `component`   | React component rendered at `/games/<slug>`. No required props.    |
+| Field         | Meaning                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `slug`        | Lowercase kebab-case URL segment. Must equal the folder name.                                               |
+| `title`       | Plain-text name. Used for the document title, the card's accessible name, and the visible title by default. |
+| `titleNode`   | Optional styled name. Its text must match `title`. The lobby renders this instead of `title` when set.      |
+| `description` | One or two sentences on the lobby card.                                                                     |
+| `thumbnail`   | Image URL for the card. Import a small file from `assets/`. It ships with the lobby.                        |
+| `component`   | `lazy(() => import('./Game.tsx'))`. Do not statically import `Game.tsx` into the manifest.                  |
 
 Each game's `index.ts` exports that object as `manifest`.
 
@@ -78,11 +80,11 @@ Full walkthrough, including a copy-paste folder template: [docs/adding-a-game.md
 
 Short version:
 
-1. Add `src/games/<slug>/` with `index.ts`, `Game.tsx`, and a thumbnail.
-2. Export `manifest` from `index.ts`.
+1. Add `src/games/<slug>/` with `index.ts`, `Game.tsx`, and `assets/` for images.
+2. Export `manifest` from `index.ts`, with `component: lazy(() => import('./Game.tsx'))`.
 3. Import that manifest in `src/platform/registry.ts` and append it to `games`. Lobby order is the array order.
 4. Run `pnpm dev` and open `/games/<slug>`.
-5. Run `pnpm test` before you push.
+5. Run `pnpm test` and `pnpm build` before you push. The build checks that the large game image is not in the lobby chunk.
 
 The starter folders `reverse-akinator` and `wheres-my-light` are stubs. Replace the files inside the folder you own. Leave the other stub alone, and keep the existing slug.
 
@@ -97,7 +99,33 @@ const rng = createRng(1234)
 const roll = randomInt(rng, 1, 6)
 ```
 
-`createRng(seed)` returns floats in `[0, 1)`. `randomInt(rng, min, max)` is inclusive. Add new shared helpers only when a second game needs them. Until then, keep the code in the game folder.
+`createRng(seed)` returns floats in `[0, 1)`. `randomInt(rng, min, max)` is inclusive.
+
+## Saves
+
+`createGameStorage(slug)` in `src/shared/storage.ts` prefixes localStorage keys so two games can both use `progress` without overwriting each other. Pass the manifest slug:
+
+```ts
+import { createGameStorage } from '@/shared/storage.ts'
+
+const saves = createGameStorage('example-game')
+saves.set('progress', JSON.stringify({ level: 2 }))
+const raw = saves.get('progress')
+saves.remove('progress')
+```
+
+Stored keys look like `eb-fun:example-game:progress`. The key is URI-encoded. Values are strings. The slug must be lowercase kebab-case.
+
+## Static assets
+
+Put images and other files in `src/games/<slug>/assets/` and import them. Vite emits a URL for each import.
+
+- Import the lobby thumbnail from `index.ts`. Keep it small. That module loads with the lobby.
+- Import everything else from `Game.tsx` (or a module only `Game.tsx` imports). `React.lazy` loads that module when the player opens `/games/<slug>`, so those files are not downloaded with the lobby.
+
+`src/games/wheres-my-light/assets/scene.png` is about 1 MB and is imported only by that game's `Game.tsx`. `pnpm build` fails if the lobby entry chunk references it.
+
+Add new shared helpers only when a second game needs them. Until then, keep the code in the game folder.
 
 ## Pull requests
 

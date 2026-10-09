@@ -1,7 +1,9 @@
 import { Link } from 'react-router'
 import { gamePath, games } from '@/platform/registry.ts'
+import { useDocumentTitle } from '@/platform/useDocumentTitle.ts'
 
 export function LobbyPage() {
+  useDocumentTitle()
   const countLabel = games.length === 1 ? '1 game' : `${games.length} games`
 
   return (
@@ -19,7 +21,7 @@ export function LobbyPage() {
               <Link className="game-card" to={gamePath(game.slug)}>
                 <img className="game-card-thumb" src={game.thumbnail} alt="" />
                 <div className="game-card-body">
-                  <h2>{game.title}</h2>
+                  <h2 aria-label={game.title}>{game.titleNode ?? game.title}</h2>
                   <p>{game.description}</p>
                 </div>
               </Link>

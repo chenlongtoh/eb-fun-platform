@@ -1,4 +1,8 @@
+import { useDocumentTitle } from '@/platform/useDocumentTitle.ts'
+
 export function NotFoundPage({ message }: { message?: string }) {
+  useDocumentTitle('Not found')
+
   return (
     <section className="notice">
       <h1>Not found</h1>
