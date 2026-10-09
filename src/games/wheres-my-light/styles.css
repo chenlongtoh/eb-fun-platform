@@ -1,0 +1,285 @@
+.wml {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: min(920px, 100%);
+  margin: 0 auto;
+  user-select: none;
+}
+
+.wml-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.wml-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wml h1 {
+  margin: 0;
+  font-family: Fraunces, 'Iowan Old Style', Georgia, serif;
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.wml-help {
+  max-width: 38rem;
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+}
+
+.wml-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.wml-pill {
+  padding: 0.32rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.wml-stage {
+  position: relative;
+  height: min(72vh, 680px);
+  min-height: 280px;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    radial-gradient(420px 220px at 15% 0%, rgba(255, 196, 92, 0.16), transparent 60%),
+    #121722;
+  box-shadow: var(--shadow);
+}
+
+.wml-stage svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.wml-head {
+  cursor: grab;
+  touch-action: none;
+}
+
+.wml-stage.is-dragging,
+.wml-stage.is-dragging .wml-head {
+  cursor: grabbing;
+}
+
+.wml-beam-core {
+  stroke-dasharray: 0.14 0.1;
+  animation: wml-dash 0.75s linear infinite;
+}
+
+.wml-win {
+  position: absolute;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  left: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: #fffaf3;
+  color: var(--ink);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+}
+
+.wml-win h2 {
+  margin: 0;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.wml-win p {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+}
+
+.wml-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.wml-tray {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 4.2rem;
+  padding: 0.45rem;
+  border: 1px dashed #c9bead;
+  border-radius: 16px;
+  background: rgba(255, 253, 248, 0.7);
+}
+
+.wml-tray.is-hot {
+  border-color: var(--accent);
+  background: #fff1e8;
+}
+
+.wml-tray-empty {
+  margin: 0;
+  padding: 0 0.4rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.wml-token {
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #fff, #efe4d4 70%);
+  box-shadow: inset 0 0 0 1px rgba(28, 25, 21, 0.08);
+  cursor: grab;
+  touch-action: none;
+}
+
+.wml-token svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.wml-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.wml-nudge {
+  display: grid;
+  grid-template-areas:
+    '. up .'
+    'left down right';
+  gap: 0.2rem;
+}
+
+.wml-nudge button:nth-child(1) {
+  grid-area: up;
+}
+
+.wml-nudge button:nth-child(2) {
+  grid-area: left;
+}
+
+.wml-nudge button:nth-child(3) {
+  grid-area: down;
+}
+
+.wml-nudge button:nth-child(4) {
+  grid-area: right;
+}
+
+.wml-button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+
+.wml-button.icon {
+  width: 2.2rem;
+  padding-inline: 0;
+}
+
+.wml-button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff8f3;
+}
+
+.wml-button:hover {
+  border-color: #c8bba6;
+}
+
+.wml-button.primary:hover {
+  border-color: var(--accent-dark);
+  background: var(--accent-dark);
+}
+
+.wml-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.wml-status {
+  min-height: 1.4rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.wml-ghost {
+  position: fixed;
+  z-index: 30;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: -1.625rem 0 0 -1.625rem;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 12px rgba(20, 16, 12, 0.28));
+}
+
+@keyframes wml-dash {
+  to {
+    stroke-dashoffset: -0.48;
+  }
+}
+
+@media (max-width: 640px) {
+  .wml-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wml-pills {
+    justify-content: flex-start;
+  }
+
+  .wml-stage {
+    height: min(64vh, 560px);
+    min-height: 240px;
+  }
+
+  .wml-win {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wml-beam-core {
+    animation: none;
+  }
+}
