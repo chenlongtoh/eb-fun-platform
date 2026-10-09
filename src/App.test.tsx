@@ -13,7 +13,7 @@ function renderAt(path: string) {
 }
 
 describe('platform shell', () => {
-  it('lists both games and opens each coming-soon page', async () => {
+  it('lists both games and opens each one', async () => {
     const user = userEvent.setup()
     renderAt('/')
 
@@ -42,7 +42,8 @@ describe('platform shell', () => {
     expect(
       await screen.findByRole('heading', { name: "Where's My Light?" }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Coming soon.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Restart level' })).toBeInTheDocument()
+    expect(screen.queryByText('Coming soon.')).not.toBeInTheDocument()
   })
 
   it('explains when a game slug is not registered', () => {
