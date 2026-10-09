@@ -9,7 +9,7 @@ import {
 import { BaldHead } from './art.tsx'
 import { Board } from './Board.tsx'
 import { generateLevel, traceLevel } from './generate.ts'
-import { canPlaceHead } from './placement.ts'
+import { canPlaceHead, nearestPlace } from './placement.ts'
 import { loadProgress, saveProgress, type Progress } from './progress.ts'
 import './styles.css'
 import type { Circle, DragState, HeadToken, Level, PlacedHead } from './types.ts'
@@ -59,14 +59,18 @@ export default function Game() {
   const [placed, setPlaced] = useState<PlacedHead[]>([])
   const [tray, setTray] = useState<HeadToken[]>(() => createTray(level))
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [armedId, setArmedId] = useState<number | null>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
+  const [note, setNote] = useState<string | null>(null)
 
   if (seenLevel !== level.level) {
     setSeenLevel(level.level)
     setPlaced([])
     setTray(createTray(level))
     setSelectedId(null)
+    setArmedId(null)
     setDrag(null)
+    setNote(null)
   }
 
   const beamHeads: Circle[] = placed
@@ -119,16 +123,17 @@ export default function Game() {
       const overBoard = pointerOverBoard(board, event.clientX, event.clientY)
       const world = clientToBoard(board, event.clientX, event.clientY)
       const others = placedRef.current.filter((head) => head.id !== current.token.id)
-      const valid = Boolean(
-        lifted && overBoard && world && canPlaceHead(puzzle, others, world.x, world.y),
-      )
+      const spot =
+        lifted && overBoard && world
+          ? nearestPlace(puzzle, others, world.x, world.y)
+          : null
       const next: DragState = {
         ...current,
         lifted,
         overBoard,
-        valid,
-        x: world?.x ?? current.x,
-        y: world?.y ?? current.y,
+        valid: Boolean(spot),
+        x: spot?.x ?? world?.x ?? current.x,
+        y: spot?.y ?? world?.y ?? current.y,
         clientX: event.clientX,
         clientY: event.clientY,
       }
@@ -146,18 +151,23 @@ export default function Game() {
 
       if (!current.lifted) {
         if (current.source === 'board') setSelectedId(current.token.id)
+        else setArmedId(current.token.id)
         return
       }
 
       const overBoard = pointerOverBoard(board, event.clientX, event.clientY)
       const world = clientToBoard(board, event.clientX, event.clientY)
       const others = placedRef.current.filter((head) => head.id !== current.token.id)
-      if (world && overBoard && canPlaceHead(puzzle, others, world.x, world.y)) {
+      const spot =
+        world && overBoard ? nearestPlace(puzzle, others, world.x, world.y) : null
+      if (spot) {
         setPlaced((list) => [
           ...list.filter((head) => head.id !== current.token.id),
-          { ...current.token, x: world.x, y: world.y },
+          { ...current.token, x: spot.x, y: spot.y },
         ])
         setSelectedId(current.token.id)
+        setArmedId(null)
+        setNote(null)
         return
       }
 
@@ -167,6 +177,7 @@ export default function Game() {
           { ...current.token, x: current.home!.x, y: current.home!.y },
         ])
         setSelectedId(current.token.id)
+        setNote('Walls block that spot. The head stayed where it was.')
         return
       }
 
@@ -177,6 +188,7 @@ export default function Game() {
       )
       setPlaced((list) => list.filter((head) => head.id !== current.token.id))
       setSelectedId(null)
+      setNote('Walls block that spot. Drop the head in an open corridor.')
     }
 
     window.addEventListener('pointermove', onMove)
@@ -214,6 +226,7 @@ export default function Game() {
     }
     dragRef.current = next
     setDrag(next)
+    setNote(null)
     if (source === 'board') setSelectedId(token.id)
   }
 
@@ -275,8 +288,31 @@ export default function Game() {
     dragRef.current = null
     setDrag(null)
     setSelectedId(null)
+    setArmedId(null)
+    setNote(null)
     setPlaced([])
     setTray(createTray(level))
+  }
+
+  function placeArmed(event: ReactPointerEvent<SVGRectElement>) {
+    const token = tray.find((item) => item.id === armedId)
+    const board = svgRef.current
+    if (!token || !board || lighting) {
+      setSelectedId(null)
+      setArmedId(null)
+      return
+    }
+    const world = clientToBoard(board, event.clientX, event.clientY)
+    const spot = world ? nearestPlace(level, placed, world.x, world.y) : null
+    if (!spot) {
+      setNote('Walls block that spot. Click an open corridor.')
+      return
+    }
+    setTray((list) => list.filter((item) => item.id !== token.id))
+    setPlaced((list) => [...list, { ...token, x: spot.x, y: spot.y }])
+    setSelectedId(token.id)
+    setArmedId(null)
+    setNote(null)
   }
 
   function goForward() {
@@ -305,9 +341,9 @@ export default function Game() {
           <p className="wml-kicker">Mini game</p>
           <h1>Where&apos;s My Light?</h1>
           <p className="wml-help">
-            Drag bald heads into the maze and nudge them. The beam reflects off the
-            curve of each scalp. Light the cat. Heads you do not need can stay in the
-            tray.
+            Drag a bald head into the maze, or select one and click a corridor. Nudge it
+            so the beam glances off the curve of the scalp and lands on the cat. Extra
+            heads can stay in the tray.
           </p>
         </div>
         <div className="wml-pills">
@@ -324,7 +360,13 @@ export default function Game() {
           drag={drag}
           selectedId={selectedId}
           svgRef={svgRef}
-          onFloorPointerDown={() => setSelectedId(null)}
+          onFloorPointerDown={(event) => {
+            if (armedId === null) {
+              setSelectedId(null)
+              return
+            }
+            placeArmed(event)
+          }}
           onHeadPointerDown={(event, head) =>
             beginDrag(event, head, 'board', { x: head.x, y: head.y })
           }
@@ -354,7 +396,8 @@ export default function Game() {
               <button
                 key={token.id}
                 type="button"
-                className="wml-token"
+                className={token.id === armedId ? 'wml-token is-armed' : 'wml-token'}
+                draggable={false}
                 aria-label={`${headVariantLabel(token.variant)}. Drag it onto the maze.`}
                 onPointerDown={(event) => beginDrag(event, token, 'tray', null)}
               >
@@ -432,9 +475,11 @@ export default function Game() {
       </div>
 
       <p className="wml-status" role="status">
-        {beam.hitCat
-          ? 'The beam touches the cat.'
-          : `${beam.bounces} ${beam.bounces === 1 ? 'bounce' : 'bounces'} so far. Arrow keys nudge the selected head.`}
+        {note && !beam.hitCat
+          ? note
+          : beam.hitCat
+            ? 'The beam touches the cat.'
+            : `${beam.bounces} ${beam.bounces === 1 ? 'bounce' : 'bounces'} so far. Arrow keys nudge the selected head.`}
       </p>
 
       {ghost ? (

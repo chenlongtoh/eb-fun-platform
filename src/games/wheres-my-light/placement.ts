@@ -36,3 +36,28 @@ export function canPlaceHead(
 
   return true
 }
+
+/** Exact point when it is legal, otherwise a nearby open point, or null. */
+export function nearestPlace(
+  level: Level,
+  heads: readonly { x: number; y: number }[],
+  x: number,
+  y: number,
+  ignoreIndex = -1,
+): { x: number; y: number } | null {
+  if (canPlaceHead(level, heads, x, y, ignoreIndex)) return { x, y }
+
+  for (let radius = 0.06; radius <= 0.75; radius += 0.06) {
+    const steps = 12
+    for (let step = 0; step < steps; step += 1) {
+      const angle = (step / steps) * Math.PI * 2
+      const nextX = x + Math.cos(angle) * radius
+      const nextY = y + Math.sin(angle) * radius
+      if (canPlaceHead(level, heads, nextX, nextY, ignoreIndex)) {
+        return { x: nextX, y: nextY }
+      }
+    }
+  }
+
+  return null
+}

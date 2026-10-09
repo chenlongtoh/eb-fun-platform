@@ -5,7 +5,7 @@ import {
   solutionHitsCat,
   zeroHeadsHitCat,
 } from './generate.ts'
-import { canPlaceHead } from './placement.ts'
+import { canPlaceHead, nearestPlace } from './placement.ts'
 
 describe('generateLevel', () => {
   it('repeats a level for the same seed', () => {
@@ -34,6 +34,25 @@ describe('generateLevel', () => {
         })
       }
     }
+  })
+
+  it('slides a blocked drop into a nearby open cell', () => {
+    const generated = generateLevel(1, 1)
+    const snapped = nearestPlace(generated, [], 0, generated.rows / 2)
+    expect(snapped).not.toBeNull()
+    if (!snapped) return
+    expect(canPlaceHead(generated, [], snapped.x, snapped.y)).toBe(true)
+
+    for (let y = 0; y < generated.rows; y += 1) {
+      for (let x = 0; x < generated.cols; x += 1) {
+        const point = { x: x + 0.5, y: y + 0.5 }
+        if (!canPlaceHead(generated, [], point.x, point.y)) continue
+        expect(nearestPlace(generated, [], point.x, point.y)).toEqual(point)
+        return
+      }
+    }
+
+    throw new Error('expected at least one open cell')
   })
 
   it('raises the maze size, wall count, and required bounces while spares fall', () => {

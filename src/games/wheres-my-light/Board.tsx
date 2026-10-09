@@ -9,7 +9,7 @@ interface BoardProps {
   drag: DragState | null
   selectedId: number | null
   svgRef: RefObject<SVGSVGElement | null>
-  onFloorPointerDown: () => void
+  onFloorPointerDown: (event: ReactPointerEvent<SVGRectElement>) => void
   onHeadPointerDown: (event: ReactPointerEvent<SVGGElement>, head: PlacedHead) => void
 }
 
