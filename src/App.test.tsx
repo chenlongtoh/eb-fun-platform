@@ -43,10 +43,6 @@ describe('platform shell', () => {
       await screen.findByRole('heading', { name: "Where's My Light?" }),
     ).toBeInTheDocument()
     expect(screen.getByText('Coming soon.')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Placeholder scene' })).toHaveAttribute(
-      'src',
-      expect.stringMatching(/scene\.png/),
-    )
   })
 
   it('explains when a game slug is not registered', () => {

@@ -140,7 +140,7 @@ Keep every static file for the game inside `src/games/<slug>/assets/`. Import it
 | `index.ts`     | The lobby loads               | The thumbnail only                                |
 | `Game.tsx`     | Someone opens `/games/<slug>` | Art, audio, and other files the game itself needs |
 
-`src/games/wheres-my-light/assets/scene.png` is about 1 MB. It is imported by `Game.tsx`, not by `index.ts`. `pnpm build` runs `scripts/verify-lazy-assets.mjs`, which fails if that PNG is missing, is no longer about 1 MB, or is referenced by the lobby entry chunk.
+`pnpm build` runs `scripts/verify-lazy-assets.mjs`. It builds the small sample in `scripts/fixtures/lazy-asset` (not a game folder) and fails if that sample's asset is bundled into the entry chunk instead of the dynamically imported module.
 
 ## 5. Run and test
 

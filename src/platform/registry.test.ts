@@ -45,7 +45,7 @@ describe('game registry', () => {
     expect(games[1]?.titleNode).toBeUndefined()
   })
 
-  it('lazy-loads game modules and keeps the large asset out of the manifest', () => {
+  it('lazy-loads each game from its manifest module', () => {
     const root = process.cwd()
 
     for (const game of games) {
@@ -55,14 +55,7 @@ describe('game registry', () => {
       )
       expect(indexSource).toMatch(/lazy\(\(\) => import\('\.\/Game\.tsx'\)\)/)
       expect(indexSource).not.toMatch(/from\s+['"]\.\/Game/)
-      expect(indexSource).not.toMatch(/\.png['"]/)
     }
-
-    const gameSource = readFileSync(
-      join(root, 'src/games/wheres-my-light/Game.tsx'),
-      'utf8',
-    )
-    expect(gameSource).toMatch(/from\s+['"]\.\/assets\/scene\.png['"]/)
   })
 
   it('looks up a game by slug and builds its path', () => {

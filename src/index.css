@@ -223,14 +223,6 @@ a {
   font-size: 1.7rem;
 }
 
-.game-asset {
-  display: block;
-  width: min(100%, 28rem);
-  height: auto;
-  margin-top: 1.4rem;
-  border-radius: 12px;
-}
-
 .game-loading {
   margin: 6vh 0 0;
   color: var(--muted);

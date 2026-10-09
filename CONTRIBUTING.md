@@ -123,7 +123,7 @@ Put images and other files in `src/games/<slug>/assets/` and import them. Vite e
 - Import the lobby thumbnail from `index.ts`. Keep it small. That module loads with the lobby.
 - Import everything else from `Game.tsx` (or a module only `Game.tsx` imports). `React.lazy` loads that module when the player opens `/games/<slug>`, so those files are not downloaded with the lobby.
 
-`src/games/wheres-my-light/assets/scene.png` is about 1 MB and is imported only by that game's `Game.tsx`. `pnpm build` fails if the lobby entry chunk references it.
+`pnpm build` runs `scripts/verify-lazy-assets.mjs`. That script builds `scripts/fixtures/lazy-asset`, a small sample outside the game folders, and fails if the sample's asset is included in the entry chunk instead of the dynamically imported one.
 
 Add new shared helpers only when a second game needs them. Until then, keep the code in the game folder.
 

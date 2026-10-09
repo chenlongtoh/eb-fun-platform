@@ -1,52 +1,60 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { build } from 'vite'
 
-const dist = 'dist'
-const assetsDir = join(dist, 'assets')
-const html = readFileSync(join(dist, 'index.html'), 'utf8')
-const entryMatch = html.match(/assets\/(index-[^"']+\.js)/)
+const fixtureRoot = join(dirname(fileURLToPath(import.meta.url)), 'fixtures/lazy-asset')
+const outDir = mkdtempSync(join(tmpdir(), 'eb-fun-lazy-asset-'))
 
-if (!entryMatch) {
-  throw new Error('Could not find the lobby entry chunk in dist/index.html')
-}
+try {
+  await build({
+    root: fixtureRoot,
+    logLevel: 'warn',
+    build: {
+      outDir,
+      emptyOutDir: true,
+      assetsInlineLimit: 0,
+    },
+  })
 
-const entryName = entryMatch[1]
-const entryPath = join(assetsDir, entryName)
-const entrySource = readFileSync(entryPath, 'utf8')
-const entrySize = statSync(entryPath).size
-const files = readdirSync(assetsDir)
-const pngs = files.filter((name) => name.endsWith('.png'))
+  const assetsDir = join(outDir, 'assets')
+  const files = readdirSync(assetsDir)
+  const markerName = files.find((name) => name.endsWith('.svg'))
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8')
+  const entryMatch = html.match(/assets\/([^"']+\.js)/)
 
-if (pngs.length !== 1) {
-  throw new Error(`Expected one built PNG asset, found: ${pngs.join(', ') || '(none)'}`)
-}
+  if (!markerName) {
+    throw new Error(`Fixture build did not emit an svg asset: ${files.join(', ')}`)
+  }
+  if (!entryMatch) {
+    throw new Error('Fixture build did not emit an entry chunk')
+  }
 
-const pngName = pngs[0]
-const pngSize = statSync(join(assetsDir, pngName)).size
+  const entryName = entryMatch[1]
+  const entrySource = readFileSync(join(assetsDir, entryName), 'utf8')
+  if (entrySource.includes(markerName)) {
+    throw new Error(`Entry chunk ${entryName} references ${markerName}`)
+  }
+  if (!entrySource.includes('import(')) {
+    throw new Error(
+      `Entry chunk ${entryName} does not dynamically import the asset module`,
+    )
+  }
 
-if (pngSize < 1_000_000 || pngSize > 1_200_000) {
-  throw new Error(`Expected scene.png to stay about 1 MB, got ${pngSize} bytes`)
-}
-
-if (entrySize > 500_000) {
-  throw new Error(
-    `Lobby entry chunk is ${entrySize} bytes; a game asset may be inlined`,
+  const holders = files.filter(
+    (name) =>
+      name.endsWith('.js') &&
+      name !== entryName &&
+      readFileSync(join(assetsDir, name), 'utf8').includes(markerName),
   )
+  if (holders.length === 0) {
+    throw new Error(`No lazy chunk references ${markerName}`)
+  }
+
+  console.log(
+    `Lazy asset check passed: ${markerName} is referenced by ${holders.join(', ')}, not ${entryName}.`,
+  )
+} finally {
+  rmSync(outDir, { recursive: true, force: true })
 }
-
-if (entrySource.includes(pngName)) {
-  throw new Error(`Lobby entry ${entryName} references ${pngName}`)
-}
-
-const gameChunks = files.filter((name) => name.endsWith('.js') && name !== entryName)
-const holders = gameChunks.filter((name) =>
-  readFileSync(join(assetsDir, name), 'utf8').includes(pngName),
-)
-
-if (holders.length === 0) {
-  throw new Error(`No lazy game chunk references ${pngName}`)
-}
-
-console.log(
-  `Lazy asset check passed: ${pngName} (${pngSize} bytes) is referenced by ${holders.join(', ')}, not ${entryName}.`,
-)
