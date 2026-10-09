@@ -69,3 +69,20 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/adding-a-game.md](docs/adding-a
 ## CI
 
 GitHub Actions (`.github/workflows/ci.yml`) installs dependencies, then lints, checks formatting, type-checks, tests, and builds.
+
+## GitHub Pages
+
+Pushes to `main` deploy the site to [https://chenlongtoh.github.io/eb-fun-platform/](https://chenlongtoh.github.io/eb-fun-platform/). The workflow is `.github/workflows/pages.yml`. It installs and builds with the same pnpm steps as CI, then publishes `dist/` with the official Pages actions (`configure-pages`, `upload-pages-artifact`, `deploy-pages`).
+
+That build sets `PAGES_BASE_PATH=/eb-fun-platform/`, so Vite's `base` is `/eb-fun-platform/`. `pnpm dev` and a normal `pnpm build` leave the base at `/`. The router uses that base as its basename. Asset URLs that Vite emits, including images imported from a game folder, are prefixed with the base. The Pages build also copies `index.html` to `404.html`, so a direct load or refresh of `/eb-fun-platform/games/<slug>` still opens the app.
+
+Preview the Pages build locally:
+
+```sh
+PAGES_BASE_PATH=/eb-fun-platform/ pnpm build
+PAGES_BASE_PATH=/eb-fun-platform/ pnpm preview --host 127.0.0.1 --port 4173
+```
+
+Open http://127.0.0.1:4173/eb-fun-platform/.
+
+**One-time setup:** In the repository on GitHub, open **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions**. The deploy workflow cannot publish until that is selected. If the first run failed before you changed it, re-run **Deploy GitHub Pages** from the Actions tab, or push to `main` again.

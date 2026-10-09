@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
+import { routerBasename } from '@/platform/basename.ts'
 import { PlatformLayout } from '@/platform/layout/PlatformLayout.tsx'
 import { GamePage } from '@/platform/pages/GamePage.tsx'
 import { LobbyPage } from '@/platform/pages/LobbyPage.tsx'
@@ -18,7 +19,7 @@ export function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename()}>
       <AppRoutes />
     </BrowserRouter>
   )
