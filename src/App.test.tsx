@@ -32,7 +32,8 @@ describe('platform shell', () => {
     expect(
       await screen.findByRole('heading', { name: 'Play StaySEAN' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Coming soon.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Summon the Genie/ })).toBeInTheDocument()
+    expect(screen.queryByText('Coming soon.')).not.toBeInTheDocument()
     expect(document.title).toBe('Play StaySEAN · EB Fun Platform')
     expect(document.querySelector('.reverse-akinator-accent')).toHaveTextContent('SEAN')
 
